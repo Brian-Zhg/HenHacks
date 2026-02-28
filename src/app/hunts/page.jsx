@@ -70,7 +70,7 @@ export default function HuntListPage({ onSelectLandmark }) {
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight leading-none"
                   style={{ fontFamily: "Syne, sans-serif", letterSpacing: "-0.02em" }}>
-                ShotCaller<span className="text-emerald-400">.tech</span>
+                PinDrop<span className="text-emerald-400">.Tech</span>
               </h1>
               <p className="text-slate-500 text-xs mt-0.5">Explore · Snap · Conquer</p>
             </div>
