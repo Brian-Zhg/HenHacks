@@ -192,7 +192,7 @@ export default function HuntListPage({ onSelectLandmark }) {
               🗺️ View Map
             </Button>
           </a>
-          <a href="/map" className="flex-1">
+          <a href="/leaderboard" className="flex-1">
             <Button
               className="w-full rounded-xl h-11 font-bold text-slate-900"
               style={{ background: "linear-gradient(135deg,#4ade80,#22d3ee)" }}>
