@@ -185,11 +185,18 @@ export default function HuntListPage({ onSelectLandmark }) {
 
       {/* Bottom CTA */}
       <div className="fixed bottom-0 inset-x-0 bg-[#080c14]/95 backdrop-blur-md border-t border-white/5 px-4 py-3">
-        <div className="max-w-lg mx-auto">
-          <a href="/map">
+        <div className="max-w-lg mx-auto flex gap-3">
+          <a href="/map" className="flex-1">
             <Button variant="outline"
               className="w-full border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl h-11">
               🗺️ View Map
+            </Button>
+          </a>
+          <a href="/map" className="flex-1">
+            <Button
+              className="w-full rounded-xl h-11 font-bold text-slate-900"
+              style={{ background: "linear-gradient(135deg,#4ade80,#22d3ee)" }}>
+              🏆 Leaderboard
             </Button>
           </a>
         </div>
