@@ -1,13 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 
-// ── Mock data (swap with your real API/context later) ──────────────────────
 const LANDMARKS = [
   { id: 1, name: "City Hall",         category: "Architecture", points: 10, emoji: "🏛️", captured: true,  distance: "0.3 mi", description: "Capture a selfie in front of the main entrance clock tower." },
   { id: 2, name: "Bethesda Fountain", category: "Nature",       points: 15, emoji: "⛲", captured: false, distance: "0.7 mi", description: "Snap a selfie at the iconic Bethesda Fountain." },
@@ -19,7 +16,7 @@ const LANDMARKS = [
 
 const CATEGORIES = ["All", "Architecture", "Nature", "Culture", "History", "Maritime"];
 
-const CATEGORY_COLORS = {
+const CATEGORY_COLORS: Record<string, string> = {
   Architecture: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   Nature:       "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   Culture:      "bg-violet-500/10 text-violet-400 border-violet-500/20",
@@ -27,8 +24,7 @@ const CATEGORY_COLORS = {
   Maritime:     "bg-sky-500/10 text-sky-400 border-sky-500/20",
 };
 
-// ── Component ───────────────────────────────────────────────────────────────
-export default function HuntListPage({ onSelectLandmark }) {
+export default function HuntListPage({ onSelectLandmark }: { onSelectLandmark?: (lm: any) => void }) {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [showCaptured, setShowCaptured] = useState(true);
@@ -46,10 +42,9 @@ export default function HuntListPage({ onSelectLandmark }) {
   });
 
   return (
-    <div className="min-h-screen bg-[#080c14] text-slate-100 font-[system-ui]"
+    <div className="min-h-screen bg-[#080c14] text-slate-100"
          style={{ fontFamily: "'Syne', 'DM Sans', sans-serif" }}>
 
-      {/* Google Font import via style tag */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
@@ -63,7 +58,7 @@ export default function HuntListPage({ onSelectLandmark }) {
         ); }
       `}</style>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <header className="sticky top-0 z-20 bg-[#080c14]/90 backdrop-blur-md border-b border-white/5 px-4 pt-5 pb-3">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
@@ -81,23 +76,16 @@ export default function HuntListPage({ onSelectLandmark }) {
               <p className="text-slate-500 text-xs mt-0.5">{captured}/{LANDMARKS.length} captured</p>
             </div>
           </div>
-
-          {/* Progress bar */}
           <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
-              style={{
-                width: `${progress}%`,
-                background: "linear-gradient(90deg, #4ade80, #22d3ee)",
-              }}
+              style={{ width: `${progress}%`, background: "linear-gradient(90deg, #4ade80, #22d3ee)" }}
             />
           </div>
         </div>
       </header>
 
       <main className="max-w-lg mx-auto px-4 pt-4 pb-24">
-
-        {/* ── Search ── */}
         <Input
           placeholder="Search landmarks..."
           value={search}
@@ -105,7 +93,6 @@ export default function HuntListPage({ onSelectLandmark }) {
           className="bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-600 mb-3 h-10 rounded-xl focus-visible:ring-emerald-500/40"
         />
 
-        {/* ── Filter chips ── */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
           {CATEGORIES.map(cat => (
             <button
@@ -132,12 +119,10 @@ export default function HuntListPage({ onSelectLandmark }) {
           </button>
         </div>
 
-        {/* ── Section label ── */}
         <p className="text-slate-600 text-xs uppercase tracking-widest mb-3">
           {visible.length} location{visible.length !== 1 ? "s" : ""}
         </p>
 
-        {/* ── Landmark cards ── */}
         <div className="flex flex-col gap-3">
           {visible.map((lm, i) => (
             <Card
@@ -153,16 +138,9 @@ export default function HuntListPage({ onSelectLandmark }) {
               style={{ animationDelay: `${i * 60}ms` }}
             >
               <CardContent className="p-4 flex gap-4 items-center">
-
-                {/* Emoji bubble */}
-                <div className={`
-                  w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0
-                  ${lm.captured ? "bg-white/5" : "bg-white/[0.06]"}
-                `}>
+                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 ${lm.captured ? "bg-white/5" : "bg-white/[0.06]"}`}>
                   {lm.captured ? "✅" : lm.emoji}
                 </div>
-
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className={`font-bold text-base leading-tight ${lm.captured ? "text-slate-500" : "text-slate-100"}`}
@@ -178,13 +156,9 @@ export default function HuntListPage({ onSelectLandmark }) {
                   </p>
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-slate-600 text-xs">📍 {lm.distance}</span>
-                    {lm.captured && (
-                      <span className="text-emerald-600 text-xs font-medium">Captured</span>
-                    )}
+                    {lm.captured && <span className="text-emerald-600 text-xs font-medium">Captured</span>}
                   </div>
                 </div>
-
-                {/* Points badge */}
                 <div className="shrink-0 text-right">
                   {lm.captured ? (
                     <div className="text-slate-600 text-xs font-bold">+{lm.points}</div>
@@ -196,7 +170,6 @@ export default function HuntListPage({ onSelectLandmark }) {
                     </div>
                   )}
                 </div>
-
               </CardContent>
             </Card>
           ))}
@@ -210,18 +183,15 @@ export default function HuntListPage({ onSelectLandmark }) {
         </div>
       </main>
 
-      {/* ── Bottom CTA ── */}
+      {/* Bottom CTA */}
       <div className="fixed bottom-0 inset-x-0 bg-[#080c14]/95 backdrop-blur-md border-t border-white/5 px-4 py-3">
-        <div className="max-w-lg mx-auto flex gap-3">
-          <Button variant="outline"
-            className="flex-1 border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl h-11">
-            🗺️ View Map
-          </Button>
-          <Button
-            className="flex-1 rounded-xl h-11 font-bold text-slate-900"
-            style={{ background: "linear-gradient(135deg,#4ade80,#22d3ee)" }}>
-            🏆 Leaderboard
-          </Button>
+        <div className="max-w-lg mx-auto">
+          <a href="/map">
+            <Button variant="outline"
+              className="w-full border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl h-11">
+              🗺️ View Map
+            </Button>
+          </a>
         </div>
       </div>
 
