@@ -4,15 +4,7 @@ import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
-const LANDMARKS = [
-  { id: 1, name: "City Hall",         category: "Architecture", points: 10, emoji: "🏛️", captured: true,  distance: "0.3 mi", description: "Capture a selfie in front of the main entrance clock tower." },
-  { id: 2, name: "Bethesda Fountain", category: "Nature",       points: 15, emoji: "⛲", captured: false, distance: "0.7 mi", description: "Snap a selfie at the iconic Bethesda Fountain." },
-  { id: 3, name: "Historic Library",  category: "Culture",      points: 20, emoji: "📚", captured: false, distance: "1.1 mi", description: "Pose with the famous stone lions guarding the entrance." },
-  { id: 4, name: "Old Train Station", category: "History",      points: 25, emoji: "🚂", captured: true,  distance: "1.4 mi", description: "Find the vintage departure board inside the grand hall." },
-  { id: 5, name: "Harbor Lighthouse", category: "Maritime",     points: 30, emoji: "🗼", captured: false, distance: "2.2 mi", description: "Selfie at the base of the historic lighthouse." },
-  { id: 6, name: "War Memorial",      category: "History",      points: 20, emoji: "🔥", captured: false, distance: "0.9 mi", description: "Pay respects and capture the eternal flame." },
-];
+import { hunts } from "@/data/hunts";
 
 const CATEGORIES = ["All", "Architecture", "Nature", "Culture", "History", "Maritime"];
 
@@ -24,34 +16,40 @@ const CATEGORY_COLORS = {
   Maritime:     "bg-sky-500/10 text-sky-400 border-sky-500/20",
 };
 
-export default function MapPage({ onSelectLandmark }) {
+const DIFFICULTY_COLORS = {
+  easy:   "bg-green-500/10 text-green-400 border-green-500/20",
+  medium: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+  hard:   "bg-red-500/10 text-red-400 border-red-500/20",
+};
+
+export default function HuntListPage({ onSelectLandmark }) {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [showCaptured, setShowCaptured] = useState(true);
-  const [landmarks, setLandmarks] = useState(LANDMARKS);
+  const [capturedIds, setCapturedIds] = useState([]);
 
-  // Photo modal state
   const [selectedLandmark, setSelectedLandmark] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [verifyStatus, setVerifyStatus] = useState(null); // null | 'verifying' | 'success' | 'fail'
+  const [verifyStatus, setVerifyStatus] = useState(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
-  const captured = landmarks.filter(l => l.captured).length;
-  const totalPts  = landmarks.filter(l => l.captured).reduce((s, l) => s + l.points, 0);
-  const maxPts    = landmarks.reduce((s, l) => s + l.points, 0);
-  const progress  = Math.round((captured / landmarks.length) * 100);
+  const capturedLandmarks = hunts.filter(l => capturedIds.includes(l.id));
+  const totalPts = capturedLandmarks.reduce((s, l) => s + l.points, 0);
+  const maxPts = hunts.reduce((s, l) => s + l.points, 0);
+  const progress = Math.round((capturedIds.length / hunts.length) * 100);
 
-  const visible = landmarks.filter(l => {
-    if (!showCaptured && l.captured) return false;
-    if (filter !== "All" && l.category !== filter) return false;
-    if (search && !l.name.toLowerCase().includes(search.toLowerCase())) return false;
+  const visible = hunts.filter(l => {
+    const isCaptured = capturedIds.includes(l.id);
+    if (!showCaptured && isCaptured) return false;
+    if (filter !== "All" && l.borough !== filter && l.difficulty !== filter.toLowerCase()) return false;
+    if (search && !l.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
 
   const handleCardClick = (lm) => {
-    if (lm.captured) return;
+    if (capturedIds.includes(lm.id)) return;
     setSelectedLandmark(lm);
     setPhotoPreview(null);
     setVerifyStatus(null);
@@ -71,12 +69,12 @@ export default function MapPage({ onSelectLandmark }) {
     setVerifyStatus('verifying');
 
     try {
-      const res = await fetch('/api/route', {
+      const res = await fetch('/api/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           image: photoPreview,
-          landmark: selectedLandmark.name
+          landmark: selectedLandmark.title
         })
       });
 
@@ -85,9 +83,7 @@ export default function MapPage({ onSelectLandmark }) {
       if (verified) {
         setVerifyStatus('success');
         setTimeout(() => {
-          setLandmarks(prev =>
-            prev.map(l => l.id === selectedLandmark.id ? { ...l, captured: true } : l)
-          );
+          setCapturedIds(prev => [...prev, selectedLandmark.id]);
           setSelectedLandmark(null);
           setPhotoPreview(null);
           setVerifyStatus(null);
@@ -118,13 +114,7 @@ export default function MapPage({ onSelectLandmark }) {
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-        .captured-shimmer { background: repeating-linear-gradient(
-          135deg,
-          rgba(74,222,128,0.03) 0px,
-          rgba(74,222,128,0.03) 1px,
-          transparent 1px,
-          transparent 8px
-        ); }
+        .captured-shimmer { background: repeating-linear-gradient(135deg, rgba(74,222,128,0.03) 0px, rgba(74,222,128,0.03) 1px, transparent 1px, transparent 8px); }
         .modal-backdrop { animation: fadeIn 0.2s ease; }
         .modal-card { animation: slideUp 0.25s ease; }
         @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -138,7 +128,7 @@ export default function MapPage({ onSelectLandmark }) {
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight leading-none"
                   style={{ fontFamily: "Syne, sans-serif", letterSpacing: "-0.02em" }}>
-                PinDrop<span className="text-emerald-400">.Tech</span>
+                PinDrop<span className="text-emerald-400">.NYC</span>
               </h1>
               <p className="text-slate-500 text-xs mt-0.5">Explore · Snap · Conquer</p>
             </div>
@@ -146,7 +136,7 @@ export default function MapPage({ onSelectLandmark }) {
               <p className="text-emerald-400 font-bold text-lg leading-none">{totalPts}
                 <span className="text-slate-500 font-normal text-sm"> / {maxPts} pts</span>
               </p>
-              <p className="text-slate-500 text-xs mt-0.5">{captured}/{landmarks.length} captured</p>
+              <p className="text-slate-500 text-xs mt-0.5">{capturedIds.length}/{hunts.length} captured</p>
             </div>
           </div>
           <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -167,11 +157,11 @@ export default function MapPage({ onSelectLandmark }) {
         />
 
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
-          {CATEGORIES.map(cat => (
+          {["All", "easy", "medium", "hard"].map(cat => (
             <button
               key={cat}
               onClick={() => setFilter(cat)}
-              className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+              className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all capitalize ${
                 filter === cat
                   ? "bg-emerald-400 text-slate-900 border-emerald-400"
                   : "bg-white/5 text-slate-400 border-white/10 hover:border-white/20"
@@ -197,56 +187,57 @@ export default function MapPage({ onSelectLandmark }) {
         </p>
 
         <div className="flex flex-col gap-3">
-          {visible.map((lm, i) => (
-            <Card
-              key={lm.id}
-              onClick={() => handleCardClick(lm)}
-              className={`
-                card-hover border rounded-2xl overflow-hidden cursor-pointer
-                ${lm.captured
-                  ? "bg-white/[0.03] border-white/5 captured-shimmer"
-                  : "bg-[#0d1520] border-white/10 hover:border-emerald-500/30"
-                }
-              `}
-              style={{ animationDelay: `${i * 60}ms` }}
-            >
-              <CardContent className="p-4 flex gap-4 items-center">
-                <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 ${lm.captured ? "bg-white/5" : "bg-white/[0.06]"}`}>
-                  {lm.captured ? "✅" : lm.emoji}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className={`font-bold text-base leading-tight ${lm.captured ? "text-slate-500" : "text-slate-100"}`}
-                        style={{ fontFamily: "Syne, sans-serif" }}>
-                      {lm.name}
-                    </h2>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${CATEGORY_COLORS[lm.category]}`}>
-                      {lm.category}
-                    </span>
+          {visible.map((lm, i) => {
+            const isCaptured = capturedIds.includes(lm.id);
+            return (
+              <Card
+                key={lm.id}
+                onClick={() => handleCardClick(lm)}
+                className={`card-hover border rounded-2xl overflow-hidden cursor-pointer ${
+                  isCaptured
+                    ? "bg-white/[0.03] border-white/5 captured-shimmer"
+                    : "bg-[#0d1520] border-white/10 hover:border-emerald-500/30"
+                }`}
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
+                <CardContent className="p-4 flex gap-4 items-center">
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 ${isCaptured ? "bg-white/5" : "bg-white/[0.06]"}`}>
+                    {isCaptured ? "✅" : "📍"}
                   </div>
-                  <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${lm.captured ? "text-slate-600" : "text-slate-400"}`}>
-                    {lm.description}
-                  </p>
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="text-slate-600 text-xs">📍 {lm.distance}</span>
-                    {lm.captured && <span className="text-emerald-600 text-xs font-medium">Captured</span>}
-                    {!lm.captured && <span className="text-emerald-500 text-xs font-medium">Tap to capture →</span>}
-                  </div>
-                </div>
-                <div className="shrink-0 text-right">
-                  {lm.captured ? (
-                    <div className="text-slate-600 text-xs font-bold">+{lm.points}</div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl"
-                         style={{ background: "linear-gradient(135deg,#4ade8022,#22d3ee22)", border: "1px solid #4ade8033" }}>
-                      <span className="text-emerald-400 font-extrabold text-sm leading-none">+{lm.points}</span>
-                      <span className="text-emerald-600 text-[9px] mt-0.5">pts</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className={`font-bold text-base leading-tight ${isCaptured ? "text-slate-500" : "text-slate-100"}`}
+                          style={{ fontFamily: "Syne, sans-serif" }}>
+                        {lm.title}
+                      </h2>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${DIFFICULTY_COLORS[lm.difficulty]}`}>
+                        {lm.difficulty}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${isCaptured ? "text-slate-600" : "text-slate-400"}`}>
+                      {lm.description}
+                    </p>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-slate-600 text-xs">📍 {lm.borough}</span>
+                      {isCaptured && <span className="text-emerald-600 text-xs font-medium">Captured</span>}
+                      {!isCaptured && <span className="text-emerald-500 text-xs font-medium">Tap to capture →</span>}
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    {isCaptured ? (
+                      <div className="text-slate-600 text-xs font-bold">+{lm.points}</div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl"
+                           style={{ background: "linear-gradient(135deg,#4ade8022,#22d3ee22)", border: "1px solid #4ade8033" }}>
+                        <span className="text-emerald-400 font-extrabold text-sm leading-none">+{lm.points}</span>
+                        <span className="text-emerald-600 text-[9px] mt-0.5">pts</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
 
           {visible.length === 0 && (
             <div className="text-center text-slate-600 py-16">
@@ -256,24 +247,25 @@ export default function MapPage({ onSelectLandmark }) {
           )}
         </div>
       </main>
-{/* Bottom CTA */}
-<div className="fixed bottom-0 inset-x-0 bg-[#080c14]/95 backdrop-blur-md border-t border-white/5 px-4 py-3">
-  <div className="max-w-lg mx-auto flex gap-3">
-    <a href="/map" className="flex-1">
-      <Button variant="outline"
-        className="w-full border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl h-11">
-        🗺️ View Map
-      </Button>
-    </a>
-    <a href="/leaderboard" className="flex-1">
-      <Button
-        className="w-full rounded-xl h-11 font-bold text-slate-900"
-        style={{ background: "linear-gradient(135deg,#4ade80,#22d3ee)" }}>
-        🏆 Leaderboard
-      </Button>
-    </a>
-  </div>
-</div>
+
+      {/* Bottom CTA */}
+      <div className="fixed bottom-0 inset-x-0 bg-[#080c14]/95 backdrop-blur-md border-t border-white/5 px-4 py-3">
+        <div className="max-w-lg mx-auto flex gap-3">
+          <a href="/map" className="flex-1">
+            <Button variant="outline"
+              className="w-full border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl h-11">
+              🗺️ View Map
+            </Button>
+          </a>
+          <a href="/leaderboard" className="flex-1">
+            <Button
+              className="w-full rounded-xl h-11 font-bold text-slate-900"
+              style={{ background: "linear-gradient(135deg,#4ade80,#22d3ee)" }}>
+              🏆 Leaderboard
+            </Button>
+          </a>
+        </div>
+      </div>
 
       {/* Photo Capture Modal */}
       {selectedLandmark && (
@@ -282,16 +274,14 @@ export default function MapPage({ onSelectLandmark }) {
           onClick={(e) => e.target === e.currentTarget && handleClose()}
         >
           <div className="modal-card w-full max-w-lg bg-[#0d1520] border border-white/10 rounded-3xl overflow-hidden">
-
-            {/* Modal Header */}
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl">
-                  {selectedLandmark.emoji}
+                  📍
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-100 leading-tight" style={{ fontFamily: "Syne, sans-serif" }}>
-                    {selectedLandmark.name}
+                    {selectedLandmark.title}
                   </h3>
                   <p className="text-slate-500 text-xs">+{selectedLandmark.points} pts on capture</p>
                 </div>
@@ -303,7 +293,6 @@ export default function MapPage({ onSelectLandmark }) {
               {selectedLandmark.description}
             </p>
 
-            {/* Photo Area */}
             <div className="px-5 py-4">
               {photoPreview ? (
                 <div className="relative rounded-2xl overflow-hidden">
@@ -323,11 +312,9 @@ export default function MapPage({ onSelectLandmark }) {
               )}
             </div>
 
-            {/* Hidden file inputs */}
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
 
-            {/* Buttons */}
             <div className="px-5 pb-5 flex flex-col gap-2">
               <div className="flex gap-2">
                 <button
@@ -364,14 +351,13 @@ export default function MapPage({ onSelectLandmark }) {
               >
                 {verifyStatus === 'verifying' && '🔍 Verifying with AI...'}
                 {verifyStatus === 'success' && '✅ Verified! Earning points...'}
-                {verifyStatus === 'fail' && `❌ That's not the ${selectedLandmark.name} silly `}
+                {verifyStatus === 'fail' && `❌ That's not ${selectedLandmark.title}!`}
                 {!verifyStatus && (submitting ? 'Submitting...' : `Submit & Earn +${selectedLandmark.points} pts`)}
               </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }
