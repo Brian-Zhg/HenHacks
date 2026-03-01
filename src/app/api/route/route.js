@@ -13,7 +13,7 @@ const base64 = image.replace(/^data:image\/\w+;base64,/, '')
 
     
     const result = await model.generateContent([
-  { text: `Look at this image. Does it show "${landmark}"? Be generous. Reply with only "true" or "false".` },
+  { text: `Look at this image. Does it show a photo with "${landmark}"? Reply with true or false` },
   { inlineData: { mimeType: 'image/jpeg', data: base64 } }
 ]).catch(err => {
   console.error('Gemini error details:', JSON.stringify(err.errorDetails, null, 2))
