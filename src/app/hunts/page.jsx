@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,12 +26,12 @@ export default function HuntListPage({ onSelectLandmark }) {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [showCaptured, setShowCaptured] = useState(true);
-  const [capturedIds, setCapturedIds] = useState(() => {
-  if (typeof window === 'undefined') return []
-  const saved = localStorage.getItem('capturedIds')
-  return saved ? JSON.parse(saved) : []
-  })
+  const [capturedIds, setCapturedIds] = useState([]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('capturedIds');
+    if (saved) setCapturedIds(JSON.parse(saved));
+  }, []);
   const [selectedLandmark, setSelectedLandmark] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
