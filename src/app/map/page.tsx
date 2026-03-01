@@ -33,12 +33,19 @@ export default function MapPage() {
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
       <div className="w-80 flex-shrink-0 flex flex-col border-r border-zinc-800 overflow-hidden">
+
         <div className="p-4 border-b border-zinc-800">
-          <h1 className="text-xl font-bold text-orange-400">NYC Hunt</h1>
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-xl font-bold text-orange-400">NYC Hunt</h1>
+            <a href="/hunts" className="text-xs text-zinc-400 hover:text-white border border-zinc-700 px-3 py-1 rounded-lg transition-colors">
+              ← Hunts
+            </a>
+          </div>
           <p className="text-zinc-400 text-sm mt-1">
             {hunts.length} locations · {completedHuntIds.length} completed
           </p>
-        </div>
+        </div>        
+
         <div className="overflow-y-auto flex-1">
           {hunts.map((hunt) => {
             const isCompleted = completedHuntIds.includes(hunt.id)
@@ -80,6 +87,10 @@ export default function MapPage() {
           onHuntSelect={setSelectedHunt}
           completedHuntIds={completedHuntIds}
         />
+          <a href="/hunts"
+            className="absolute bottom-10 right-16 z-50 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-2xl text-sm shadow-xl transition-colors">
+            🎯 Hunt List
+          </a>
         {selectedHunt && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-700 rounded-xl p-4 w-80 shadow-xl">
             <div className="flex items-start justify-between">
