@@ -6,20 +6,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { hunts } from "@/data/hunts";
 
-const CATEGORIES = ["All", "Architecture", "Nature", "Culture", "History", "Maritime"];
-
-const CATEGORY_COLORS = {
-  Architecture: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  Nature:       "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-  Culture:      "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  History:      "bg-red-500/10 text-red-400 border-red-500/20",
-  Maritime:     "bg-sky-500/10 text-sky-400 border-sky-500/20",
-};
-
 const DIFFICULTY_COLORS = {
-  easy:   "bg-green-500/10 text-green-400 border-green-500/20",
-  medium: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-  hard:   "bg-red-500/10 text-red-400 border-red-500/20",
+  easy:   "bg-green-500/10 text-green-600 border-green-500/20",
+  medium: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  hard:   "bg-red-500/10 text-red-500 border-red-500/20",
 };
 
 export default function HuntListPage({ onSelectLandmark }) {
@@ -27,17 +17,17 @@ export default function HuntListPage({ onSelectLandmark }) {
   const [search, setSearch] = useState("");
   const [showCaptured, setShowCaptured] = useState(true);
   const [capturedIds, setCapturedIds] = useState([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('capturedIds');
-    if (saved) setCapturedIds(JSON.parse(saved));
-  }, []);
   const [selectedLandmark, setSelectedLandmark] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [verifyStatus, setVerifyStatus] = useState(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('capturedIds');
+    if (saved) setCapturedIds(JSON.parse(saved));
+  }, []);
 
   const capturedLandmarks = hunts.filter(l => capturedIds.includes(l.id));
   const totalPts = capturedLandmarks.reduce((s, l) => s + l.points, 0);
@@ -71,26 +61,20 @@ export default function HuntListPage({ onSelectLandmark }) {
     if (!photoPreview) return;
     setSubmitting(true);
     setVerifyStatus('verifying');
-
     try {
       const res = await fetch('/api/route', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          image: photoPreview,
-          landmark: selectedLandmark.title
-        })
+        body: JSON.stringify({ image: photoPreview, landmark: selectedLandmark.title })
       });
-
       const { verified } = await res.json();
-
       if (verified) {
         setVerifyStatus('success');
         setTimeout(() => {
           setCapturedIds(prev => {
-            const updated = [...prev, selectedLandmark.id]
-            localStorage.setItem('capturedIds', JSON.stringify(updated))
-            return updated
+            const updated = [...prev, selectedLandmark.id];
+            localStorage.setItem('capturedIds', JSON.stringify(updated));
+            return updated;
           });
           setSelectedLandmark(null);
           setPhotoPreview(null);
@@ -115,14 +99,14 @@ export default function HuntListPage({ onSelectLandmark }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#080c14] text-slate-100"
+    <div className="min-h-screen bg-[#f4f7f4] text-slate-800"
          style={{ fontFamily: "'Syne', 'DM Sans', sans-serif" }}>
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
         .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-        .captured-shimmer { background: repeating-linear-gradient(135deg, rgba(74,222,128,0.03) 0px, rgba(74,222,128,0.03) 1px, transparent 1px, transparent 8px); }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
+        .captured-shimmer { background: repeating-linear-gradient(135deg, rgba(16,185,129,0.03) 0px, rgba(16,185,129,0.03) 1px, transparent 1px, transparent 8px); }
         .modal-backdrop { animation: fadeIn 0.2s ease; }
         .modal-card { animation: slideUp 0.25s ease; }
         @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -130,27 +114,27 @@ export default function HuntListPage({ onSelectLandmark }) {
       `}</style>
 
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-[#080c14]/90 backdrop-blur-md border-b border-white/5 px-4 pt-5 pb-3">
+      <header className="sticky top-0 z-20 bg-[#f4f7f4]/90 backdrop-blur-md border-b border-black/5 px-4 pt-5 pb-3">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-3">
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight leading-none"
                   style={{ fontFamily: "Syne, sans-serif", letterSpacing: "-0.02em" }}>
-                PinDrop<span className="text-emerald-400">.NYC</span>
+                PinDrop<span className="text-emerald-500">.NYC</span>
               </h1>
-              <p className="text-slate-500 text-xs mt-0.5">Explore · Snap · Conquer</p>
+              <p className="text-slate-400 text-xs mt-0.5">Explore · Snap · Conquer</p>
             </div>
             <div className="text-right">
-              <p className="text-emerald-400 font-bold text-lg leading-none">{totalPts}
-                <span className="text-slate-500 font-normal text-sm"> / {maxPts} pts</span>
+              <p className="text-emerald-500 font-bold text-lg leading-none">{totalPts}
+                <span className="text-slate-400 font-normal text-sm"> / {maxPts} pts</span>
               </p>
-              <p className="text-slate-500 text-xs mt-0.5">{capturedIds.length}/{hunts.length} captured</p>
+              <p className="text-slate-400 text-xs mt-0.5">{capturedIds.length}/{hunts.length} captured</p>
             </div>
           </div>
-          <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
+          <div className="relative h-1.5 bg-black/5 rounded-full overflow-hidden">
             <div
               className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
-              style={{ width: `${progress}%`, background: "linear-gradient(90deg, #4ade80, #22d3ee)" }}
+              style={{ width: `${progress}%`, background: "linear-gradient(90deg, #34d399, #22d3ee)" }}
             />
           </div>
         </div>
@@ -161,7 +145,7 @@ export default function HuntListPage({ onSelectLandmark }) {
           placeholder="Search landmarks..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="bg-white/5 border-white/10 text-slate-200 placeholder:text-slate-600 mb-3 h-10 rounded-xl focus-visible:ring-emerald-500/40"
+          className="bg-white border-black/10 text-slate-700 placeholder:text-slate-400 mb-3 h-10 rounded-xl focus-visible:ring-emerald-500/40"
         />
 
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-none">
@@ -171,8 +155,8 @@ export default function HuntListPage({ onSelectLandmark }) {
               onClick={() => setFilter(cat)}
               className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all capitalize ${
                 filter === cat
-                  ? "bg-emerald-400 text-slate-900 border-emerald-400"
-                  : "bg-white/5 text-slate-400 border-white/10 hover:border-white/20"
+                  ? "bg-emerald-400 text-white border-emerald-400"
+                  : "bg-white text-slate-500 border-black/10 hover:border-black/20"
               }`}
             >
               {cat}
@@ -182,15 +166,15 @@ export default function HuntListPage({ onSelectLandmark }) {
             onClick={() => setShowCaptured(v => !v)}
             className={`shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
               !showCaptured
-                ? "bg-slate-700 text-slate-200 border-slate-600"
-                : "bg-white/5 text-slate-400 border-white/10 hover:border-white/20"
+                ? "bg-slate-200 text-slate-700 border-slate-300"
+                : "bg-white text-slate-500 border-black/10 hover:border-black/20"
             }`}
           >
             {showCaptured ? "Hide ✓" : "Show ✓"}
           </button>
         </div>
 
-        <p className="text-slate-600 text-xs uppercase tracking-widest mb-3">
+        <p className="text-slate-400 text-xs uppercase tracking-widest mb-3">
           {visible.length} location{visible.length !== 1 ? "s" : ""}
         </p>
 
@@ -203,18 +187,18 @@ export default function HuntListPage({ onSelectLandmark }) {
                 onClick={() => handleCardClick(lm)}
                 className={`card-hover border rounded-2xl overflow-hidden cursor-pointer ${
                   isCaptured
-                    ? "bg-white/[0.03] border-white/5 captured-shimmer"
-                    : "bg-[#0d1520] border-white/10 hover:border-emerald-500/30"
+                    ? "bg-emerald-50 border-emerald-100 captured-shimmer"
+                    : "bg-white border-black/5 hover:border-emerald-300"
                 }`}
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <CardContent className="p-4 flex gap-4 items-center">
-                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 ${isCaptured ? "bg-white/5" : "bg-white/[0.06]"}`}>
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-2xl shrink-0 ${isCaptured ? "bg-emerald-100" : "bg-slate-100"}`}>
                     {isCaptured ? "✅" : "📍"}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className={`font-bold text-base leading-tight ${isCaptured ? "text-slate-500" : "text-slate-100"}`}
+                      <h2 className={`font-bold text-base leading-tight ${isCaptured ? "text-slate-400" : "text-slate-800"}`}
                           style={{ fontFamily: "Syne, sans-serif" }}>
                         {lm.title}
                       </h2>
@@ -222,23 +206,23 @@ export default function HuntListPage({ onSelectLandmark }) {
                         {lm.difficulty}
                       </span>
                     </div>
-                    <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${isCaptured ? "text-slate-600" : "text-slate-400"}`}>
+                    <p className={`text-xs mt-1 leading-relaxed line-clamp-2 ${isCaptured ? "text-slate-400" : "text-slate-500"}`}>
                       {lm.description}
                     </p>
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-slate-600 text-xs">📍 {lm.borough}</span>
-                      {isCaptured && <span className="text-emerald-600 text-xs font-medium">Captured</span>}
-                      {!isCaptured && <span className="text-emerald-500 text-xs font-medium">Tap to capture →</span>}
+                      <span className="text-slate-400 text-xs">📍 {lm.borough}</span>
+                      {isCaptured && <span className="text-emerald-500 text-xs font-medium">Captured</span>}
+                      {!isCaptured && <span className="text-emerald-600 text-xs font-medium">Tap to capture →</span>}
                     </div>
                   </div>
                   <div className="shrink-0 text-right">
                     {isCaptured ? (
-                      <div className="text-slate-600 text-xs font-bold">+{lm.points}</div>
+                      <div className="text-slate-400 text-xs font-bold">+{lm.points}</div>
                     ) : (
                       <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl"
-                           style={{ background: "linear-gradient(135deg,#4ade8022,#22d3ee22)", border: "1px solid #4ade8033" }}>
-                        <span className="text-emerald-400 font-extrabold text-sm leading-none">+{lm.points}</span>
-                        <span className="text-emerald-600 text-[9px] mt-0.5">pts</span>
+                           style={{ background: "linear-gradient(135deg,#34d39922,#22d3ee22)", border: "1px solid #34d39933" }}>
+                        <span className="text-emerald-500 font-extrabold text-sm leading-none">+{lm.points}</span>
+                        <span className="text-emerald-400 text-[9px] mt-0.5">pts</span>
                       </div>
                     )}
                   </div>
@@ -248,7 +232,7 @@ export default function HuntListPage({ onSelectLandmark }) {
           })}
 
           {visible.length === 0 && (
-            <div className="text-center text-slate-600 py-16">
+            <div className="text-center text-slate-400 py-16">
               <div className="text-4xl mb-3">🔍</div>
               <p>No landmarks found</p>
             </div>
@@ -257,18 +241,18 @@ export default function HuntListPage({ onSelectLandmark }) {
       </main>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 inset-x-0 bg-[#080c14]/95 backdrop-blur-md border-t border-white/5 px-4 py-3">
+      <div className="fixed bottom-0 inset-x-0 bg-[#f4f7f4]/95 backdrop-blur-md border-t border-black/5 px-4 py-3">
         <div className="max-w-lg mx-auto flex gap-3">
           <a href="/map" className="flex-1">
             <Button variant="outline"
-              className="w-full border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl h-11">
+              className="w-full border-black/10 bg-white text-slate-600 hover:bg-slate-50 rounded-xl h-11">
               🗺️ View Map
             </Button>
           </a>
           <a href="/leaderboard" className="flex-1">
             <Button
-              className="w-full rounded-xl h-11 font-bold text-slate-900"
-              style={{ background: "linear-gradient(135deg,#4ade80,#22d3ee)" }}>
+              className="w-full rounded-xl h-11 font-bold text-white hover:opacity-80 transition-opacity"
+              style={{ background: "linear-gradient(135deg,#34d399,#22d3ee)" }}>
               🏆 Leaderboard
             </Button>
           </a>
@@ -278,26 +262,24 @@ export default function HuntListPage({ onSelectLandmark }) {
       {/* Photo Capture Modal */}
       {selectedLandmark && (
         <div
-          className="modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm px-4 pb-6"
+          className="modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm px-4 pb-6"
           onClick={(e) => e.target === e.currentTarget && handleClose()}
         >
-          <div className="modal-card w-full max-w-lg bg-[#0d1520] border border-white/10 rounded-3xl overflow-hidden">
+          <div className="modal-card w-full max-w-lg bg-white border border-black/10 rounded-3xl overflow-hidden shadow-2xl">
             <div className="flex items-center justify-between px-5 pt-5 pb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl">
-                  📍
-                </div>
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-xl">📍</div>
                 <div>
-                  <h3 className="font-bold text-slate-100 leading-tight" style={{ fontFamily: "Syne, sans-serif" }}>
+                  <h3 className="font-bold text-slate-800 leading-tight" style={{ fontFamily: "Syne, sans-serif" }}>
                     {selectedLandmark.title}
                   </h3>
-                  <p className="text-slate-500 text-xs">+{selectedLandmark.points} pts on capture</p>
+                  <p className="text-slate-400 text-xs">+{selectedLandmark.points} pts on capture</p>
                 </div>
               </div>
-              <button onClick={handleClose} className="text-slate-500 hover:text-slate-300 text-xl leading-none">✕</button>
+              <button onClick={handleClose} className="text-slate-400 hover:text-slate-600 text-xl leading-none">✕</button>
             </div>
 
-            <p className="px-5 text-slate-400 text-sm pb-4 border-b border-white/5">
+            <p className="px-5 text-slate-500 text-sm pb-4 border-b border-black/5">
               {selectedLandmark.description}
             </p>
 
@@ -313,9 +295,9 @@ export default function HuntListPage({ onSelectLandmark }) {
                   </button>
                 </div>
               ) : (
-                <div className="rounded-2xl border-2 border-dashed border-white/10 h-48 flex flex-col items-center justify-center gap-2 bg-white/[0.02]">
+                <div className="rounded-2xl border-2 border-dashed border-black/10 h-48 flex flex-col items-center justify-center gap-2 bg-slate-50">
                   <div className="text-3xl">📷</div>
-                  <p className="text-slate-500 text-sm">Add a photo to capture this landmark</p>
+                  <p className="text-slate-400 text-sm">Add a photo to capture this landmark</p>
                 </div>
               )}
             </div>
@@ -327,13 +309,13 @@ export default function HuntListPage({ onSelectLandmark }) {
               <div className="flex gap-2">
                 <button
                   onClick={() => cameraInputRef.current.click()}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all"
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-slate-50 border border-black/10 text-slate-600 hover:bg-slate-100 transition-all"
                 >
                   📸 Camera
                 </button>
                 <button
                   onClick={() => fileInputRef.current.click()}
-                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all"
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-slate-50 border border-black/10 text-slate-600 hover:bg-slate-100 transition-all"
                 >
                   🖼️ Gallery
                 </button>
@@ -344,16 +326,16 @@ export default function HuntListPage({ onSelectLandmark }) {
                 disabled={!photoPreview || submitting}
                 className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${
                   verifyStatus === 'fail'
-                    ? 'bg-red-500/20 border border-red-500/30 text-red-400'
+                    ? 'bg-red-50 border border-red-200 text-red-500'
                     : verifyStatus === 'success'
-                    ? 'text-slate-900'
+                    ? 'text-white'
                     : photoPreview && !submitting
-                    ? 'text-slate-900'
-                    : 'bg-white/5 text-slate-600 cursor-not-allowed'
+                    ? 'text-white'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}
                 style={
                   verifyStatus === 'success' || (photoPreview && !submitting && verifyStatus !== 'fail')
-                    ? { background: 'linear-gradient(90deg, #4ade80, #22d3ee)' }
+                    ? { background: 'linear-gradient(90deg, #34d399, #22d3ee)' }
                     : {}
                 }
               >

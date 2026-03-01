@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -36,15 +36,34 @@ export default function LeaderboardPage() {
   const [friendSearch, setFriendSearch] = useState("");
   const [addedFriends, setAddedFriends] = useState(["Jack M.", "Casey T.", "Morgan L.", "Drew P."]);
   const [showAddFriend, setShowAddFriend] = useState(false);
+  const [myPoints, setMyPoints] = useState(0);
+  const [myCaptured, setMyCaptured] = useState(0);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('capturedIds');
+    if (saved) {
+      const ids = JSON.parse(saved);
+      import('@/data/hunts').then(({ hunts }) => {
+        const captured = hunts.filter(h => ids.includes(h.id));
+        setMyCaptured(captured.length);
+        setMyPoints(captured.reduce((s, h) => s + h.points, 0));
+      });
+    }
+  }, []);
+
+  const globalPlayers = GLOBAL_PLAYERS
+    .map(p => p.isMe ? { ...p, points: myPoints, captured: myCaptured } : p)
+    .sort((a, b) => b.points - a.points)
+    .map((p, i) => ({ ...p, rank: i + 1 }));
 
   const friendPlayers = [
     ...ALL_USERS.filter(u => addedFriends.includes(u.name)),
-    { name: "You", avatar: "⚡", points: 120, captured: 4, streak: 2 }
+    { name: "You", avatar: "⚡", points: myPoints, captured: myCaptured, streak: 2 }
   ]
     .sort((a, b) => b.points - a.points)
     .map((p, i) => ({ ...p, rank: i + 1, isMe: p.name === "You" }));
 
-  const players = tab === "Global" ? GLOBAL_PLAYERS : friendPlayers;
+  const players = tab === "Global" ? globalPlayers : friendPlayers;
   const top3 = players.slice(0, 3);
   const MAX_PTS = players[0]?.points ?? 1;
   const myRank = players.find(p => p.isMe)?.rank ?? "—";
@@ -98,7 +117,7 @@ export default function LeaderboardPage() {
             <div>
               <h1 className="text-2xl font-extrabold tracking-tight leading-none"
                   style={{ fontFamily: "Syne, sans-serif", letterSpacing: "-0.02em" }}>
-                PinDrop<span className="text-emerald-500">.Tech</span>
+                PinDrop<span className="text-emerald-500">.NYC</span>
               </h1>
               <p className="text-slate-400 text-xs mt-0.5">Leaderboard</p>
             </div>
@@ -186,7 +205,6 @@ export default function LeaderboardPage() {
         {/* Podium */}
         {!search && top3.length === 3 && (
           <div className="flex items-end justify-center gap-3 mb-8">
-            {/* 2nd */}
             <div className="flex flex-col items-center gap-2 fade-up" style={{ animationDelay: "100ms" }}>
               <div className="text-2xl">{top3[1].avatar}</div>
               <p className="text-slate-500 text-xs font-semibold text-center w-16 truncate">{top3[1].name}</p>
@@ -195,7 +213,6 @@ export default function LeaderboardPage() {
                 <span className="text-lg">🥈</span>
               </div>
             </div>
-            {/* 1st */}
             <div className="flex flex-col items-center gap-2 fade-up" style={{ animationDelay: "0ms" }}>
               <div className="text-3xl">{top3[0].avatar}</div>
               <p className="text-slate-700 text-xs font-bold text-center w-16 truncate">{top3[0].name}</p>
@@ -204,7 +221,6 @@ export default function LeaderboardPage() {
                 <span className="text-xl">👑</span>
               </div>
             </div>
-            {/* 3rd */}
             <div className="flex flex-col items-center gap-2 fade-up" style={{ animationDelay: "200ms" }}>
               <div className="text-2xl">{top3[2].avatar}</div>
               <p className="text-slate-500 text-xs font-semibold text-center w-16 truncate">{top3[2].name}</p>
@@ -265,18 +281,18 @@ export default function LeaderboardPage() {
                   <span className="text-slate-400 text-[10px] shrink-0">{p.captured} pins</span>
                 </div>
               </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {p.streak > 0 && (
-                    <div className="text-center">
-                      <p className="text-xs">🔥</p>
-                      <p className="text-[10px] text-orange-400 font-bold">{p.streak}</p>
-                    </div>
-                  )}
-                  <div className={`text-right ${p.isMe ? "text-emerald-500" : "text-slate-500"}`}>
-                    <p className="font-extrabold text-sm">{p.points}</p>
-                    <p className="text-[10px] text-slate-400">pts</p>
+              <div className="flex items-center gap-2 shrink-0">
+                {p.streak > 0 && (
+                  <div className="text-center">
+                    <p className="text-xs">🔥</p>
+                    <p className="text-[10px] text-orange-400 font-bold">{p.streak}</p>
                   </div>
+                )}
+                <div className={`text-right ${p.isMe ? "text-emerald-500" : "text-slate-500"}`}>
+                  <p className="font-extrabold text-sm">{p.points}</p>
+                  <p className="text-[10px] text-slate-400">pts</p>
                 </div>
+              </div>
             </div>
           ))}
         </div>
@@ -295,7 +311,7 @@ export default function LeaderboardPage() {
             <Button
               className="w-full rounded-xl h-11 font-bold text-white hover:opacity-80 transition-opacity"
               style={{ background: "linear-gradient(135deg,#34d399,#22d3ee)" }}>
-              🗺️ View Map            
+              🗺️ View Map
             </Button>
           </a>
         </div>
