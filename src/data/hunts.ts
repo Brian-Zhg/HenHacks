@@ -9,7 +9,7 @@ export interface Hunt {
     lng: number;
   };
   address: string;
-  landmark: string; // what the AI vision will look for
+  landmark: string;
   difficulty: "easy" | "medium" | "hard";
   borough: string;
 }
@@ -108,6 +108,30 @@ export const hunts: Hunt[] = [
     coordinates: { lat: 40.7480, lng: -74.0048 },
     address: "The High Line, New York, NY 10011",
     landmark: "High Line elevated park rail tracks and greenery",
+    difficulty: "easy",
+    borough: "Manhattan",
+  },
+  {
+    id: "9",
+    title: "Coney Island Cyclone",
+    description: "Find the legendary Cyclone roller coaster at Coney Island.",
+    clue: "At the tip of Brooklyn where the subway meets the sea, a wooden coaster has been thrilling riders since 1927.",
+    points: 300,
+    coordinates: { lat: 40.5745, lng: -73.9796 },
+    address: "834 Surf Ave, Brooklyn, NY 11224",
+    landmark: "Coney Island Cyclone roller coaster",
+    difficulty: "hard",
+    borough: "Brooklyn",
+  },
+  {
+    id: "10",
+    title: "Grand Central Terminal",
+    description: "Find the iconic celestial ceiling inside Grand Central Terminal.",
+    clue: "Beneath a turquoise sky of stars, commuters rush through the grandest room in New York. Look up.",
+    points: 150,
+    coordinates: { lat: 40.7527, lng: -73.9772 },
+    address: "89 E 42nd St, New York, NY 10017",
+    landmark: "Grand Central Terminal main concourse ceiling",
     difficulty: "easy",
     borough: "Manhattan",
   },
