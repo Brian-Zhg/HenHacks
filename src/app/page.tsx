@@ -57,7 +57,7 @@ export default function Home() {
         {/* Stats */}
         <div className="mt-10 flex gap-8 text-center">
           {[
-            { value: "8", label: "Landmarks" },
+            { value: "20", label: "Landmarks" },
             { value: "NYC", label: "Location" },
             { value: "AI", label: "Verified" },
           ].map((stat) => (
