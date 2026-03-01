@@ -364,7 +364,7 @@ export default function MapPage({ onSelectLandmark }) {
               >
                 {verifyStatus === 'verifying' && '🔍 Verifying with AI...'}
                 {verifyStatus === 'success' && '✅ Verified! Earning points...'}
-                {verifyStatus === 'fail' && "❌ That's not "}
+                {verifyStatus === 'fail' && `❌ That's not the ${selectedLandmark.name} silly `}
                 {!verifyStatus && (submitting ? 'Submitting...' : `Submit & Earn +${selectedLandmark.points} pts`)}
               </button>
             </div>
