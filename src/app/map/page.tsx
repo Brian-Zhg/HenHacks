@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { hunts } from "@/data/hunts"
 import type { Hunt } from "@/data/hunts"
@@ -15,7 +15,20 @@ const difficultyColor: Record<string, string> = {
 
 export default function MapPage() {
   const [selectedHunt, setSelectedHunt] = useState<Hunt | null>(null)
-  const [completedHuntIds] = useState<string[]>([])
+  const [completedHuntIds, setCompletedHuntIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('capturedIds');
+    if (saved) setCompletedHuntIds(JSON.parse(saved));
+
+    // Listen for updates from hunts page
+    const handleStorage = () => {
+      const saved = localStorage.getItem('capturedIds');
+      if (saved) setCompletedHuntIds(JSON.parse(saved));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);  
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
@@ -34,7 +47,7 @@ export default function MapPage() {
               <button
                 key={hunt.id}
                 onClick={() => setSelectedHunt(hunt)}
-                className={`w-full text-left p-4 border-b border-zinc-800 transition-colors hover:bg-zinc-900 ${isSelected ? "bg-zinc-900 border-l-2 border-l-orange-400" : ""}`}
+                className={`w-full text-left p-4 border-b border-zinc-800 transition-colors hover:bg-zinc-900 ${isSelected ? "bg-zinc-900 border-l-2 border-l-orange-400" : ""} ${isCompleted ? "border-l-2 border-l-emerald-500" : ""}`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -77,9 +90,10 @@ export default function MapPage() {
               <span className="text-orange-400 font-bold text-lg">{selectedHunt.points}pts</span>
             </div>
             <p className="text-zinc-300 text-sm mt-2">{selectedHunt.description}</p>
-            <button className="mt-3 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg text-sm transition-colors">
-              Start this Hunt
-            </button>
+            <a href="/hunts"
+  className="mt-3 block w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg text-sm transition-colors text-center">
+  Start this Hunt
+</a>
           </div>
         )}
       </div>
