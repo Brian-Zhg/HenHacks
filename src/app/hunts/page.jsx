@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,22 +24,91 @@ const CATEGORY_COLORS = {
   Maritime:     "bg-sky-500/10 text-sky-400 border-sky-500/20",
 };
 
-export default function HuntListPage({ onSelectLandmark }) {
+export default function MapPage({ onSelectLandmark }) {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [showCaptured, setShowCaptured] = useState(true);
+  const [landmarks, setLandmarks] = useState(LANDMARKS);
 
-  const captured = LANDMARKS.filter(l => l.captured).length;
-  const totalPts  = LANDMARKS.filter(l => l.captured).reduce((s, l) => s + l.points, 0);
-  const maxPts    = LANDMARKS.reduce((s, l) => s + l.points, 0);
-  const progress  = Math.round((captured / LANDMARKS.length) * 100);
+  // Photo modal state
+  const [selectedLandmark, setSelectedLandmark] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [verifyStatus, setVerifyStatus] = useState(null); // null | 'verifying' | 'success' | 'fail'
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
-  const visible = LANDMARKS.filter(l => {
+  const captured = landmarks.filter(l => l.captured).length;
+  const totalPts  = landmarks.filter(l => l.captured).reduce((s, l) => s + l.points, 0);
+  const maxPts    = landmarks.reduce((s, l) => s + l.points, 0);
+  const progress  = Math.round((captured / landmarks.length) * 100);
+
+  const visible = landmarks.filter(l => {
     if (!showCaptured && l.captured) return false;
     if (filter !== "All" && l.category !== filter) return false;
     if (search && !l.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const handleCardClick = (lm) => {
+    if (lm.captured) return;
+    setSelectedLandmark(lm);
+    setPhotoPreview(null);
+    setVerifyStatus(null);
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setPhotoPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async () => {
+    if (!photoPreview) return;
+    setSubmitting(true);
+    setVerifyStatus('verifying');
+
+    try {
+      const res = await fetch('/api/route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: photoPreview,
+          landmark: selectedLandmark.name
+        })
+      });
+
+      const { verified } = await res.json();
+
+      if (verified) {
+        setVerifyStatus('success');
+        setTimeout(() => {
+          setLandmarks(prev =>
+            prev.map(l => l.id === selectedLandmark.id ? { ...l, captured: true } : l)
+          );
+          setSelectedLandmark(null);
+          setPhotoPreview(null);
+          setVerifyStatus(null);
+        }, 1000);
+      } else {
+        setVerifyStatus('fail');
+        setTimeout(() => setVerifyStatus(null), 2500);
+      }
+    } catch (err) {
+      setVerifyStatus('fail');
+      setTimeout(() => setVerifyStatus(null), 2500);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setSelectedLandmark(null);
+    setPhotoPreview(null);
+    setVerifyStatus(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#080c14] text-slate-100"
@@ -56,6 +125,10 @@ export default function HuntListPage({ onSelectLandmark }) {
           transparent 1px,
           transparent 8px
         ); }
+        .modal-backdrop { animation: fadeIn 0.2s ease; }
+        .modal-card { animation: slideUp 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px) } to { opacity: 1; transform: translateY(0) } }
       `}</style>
 
       {/* Header */}
@@ -73,7 +146,7 @@ export default function HuntListPage({ onSelectLandmark }) {
               <p className="text-emerald-400 font-bold text-lg leading-none">{totalPts}
                 <span className="text-slate-500 font-normal text-sm"> / {maxPts} pts</span>
               </p>
-              <p className="text-slate-500 text-xs mt-0.5">{captured}/{LANDMARKS.length} captured</p>
+              <p className="text-slate-500 text-xs mt-0.5">{captured}/{landmarks.length} captured</p>
             </div>
           </div>
           <div className="relative h-1.5 bg-white/5 rounded-full overflow-hidden">
@@ -127,7 +200,7 @@ export default function HuntListPage({ onSelectLandmark }) {
           {visible.map((lm, i) => (
             <Card
               key={lm.id}
-              onClick={() => !lm.captured && onSelectLandmark?.(lm)}
+              onClick={() => handleCardClick(lm)}
               className={`
                 card-hover border rounded-2xl overflow-hidden cursor-pointer
                 ${lm.captured
@@ -157,6 +230,7 @@ export default function HuntListPage({ onSelectLandmark }) {
                   <div className="flex items-center gap-3 mt-2">
                     <span className="text-slate-600 text-xs">📍 {lm.distance}</span>
                     {lm.captured && <span className="text-emerald-600 text-xs font-medium">Captured</span>}
+                    {!lm.captured && <span className="text-emerald-500 text-xs font-medium">Tap to capture →</span>}
                   </div>
                 </div>
                 <div className="shrink-0 text-right">
@@ -185,22 +259,112 @@ export default function HuntListPage({ onSelectLandmark }) {
 
       {/* Bottom CTA */}
       <div className="fixed bottom-0 inset-x-0 bg-[#080c14]/95 backdrop-blur-md border-t border-white/5 px-4 py-3">
-        <div className="max-w-lg mx-auto flex gap-3">
-          <a href="/map" className="flex-1">
+        <div className="max-w-lg mx-auto">
+          <a href="/map">
             <Button variant="outline"
               className="w-full border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 rounded-xl h-11">
               🗺️ View Map
             </Button>
           </a>
-          <a href="/leaderboard" className="flex-1">
-            <Button
-              className="w-full rounded-xl h-11 font-bold text-slate-900"
-              style={{ background: "linear-gradient(135deg,#4ade80,#22d3ee)" }}>
-              🏆 Leaderboard
-            </Button>
-          </a>
         </div>
       </div>
+
+      {/* Photo Capture Modal */}
+      {selectedLandmark && (
+        <div
+          className="modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/70 backdrop-blur-sm px-4 pb-6"
+          onClick={(e) => e.target === e.currentTarget && handleClose()}
+        >
+          <div className="modal-card w-full max-w-lg bg-[#0d1520] border border-white/10 rounded-3xl overflow-hidden">
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-xl">
+                  {selectedLandmark.emoji}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-100 leading-tight" style={{ fontFamily: "Syne, sans-serif" }}>
+                    {selectedLandmark.name}
+                  </h3>
+                  <p className="text-slate-500 text-xs">+{selectedLandmark.points} pts on capture</p>
+                </div>
+              </div>
+              <button onClick={handleClose} className="text-slate-500 hover:text-slate-300 text-xl leading-none">✕</button>
+            </div>
+
+            <p className="px-5 text-slate-400 text-sm pb-4 border-b border-white/5">
+              {selectedLandmark.description}
+            </p>
+
+            {/* Photo Area */}
+            <div className="px-5 py-4">
+              {photoPreview ? (
+                <div className="relative rounded-2xl overflow-hidden">
+                  <img src={photoPreview} alt="Preview" className="w-full h-56 object-cover" />
+                  <button
+                    onClick={() => { setPhotoPreview(null); setVerifyStatus(null); }}
+                    className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-1 rounded-full"
+                  >
+                    Retake
+                  </button>
+                </div>
+              ) : (
+                <div className="rounded-2xl border-2 border-dashed border-white/10 h-48 flex flex-col items-center justify-center gap-2 bg-white/[0.02]">
+                  <div className="text-3xl">📷</div>
+                  <p className="text-slate-500 text-sm">Add a photo to capture this landmark</p>
+                </div>
+              )}
+            </div>
+
+            {/* Hidden file inputs */}
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+
+            {/* Buttons */}
+            <div className="px-5 pb-5 flex flex-col gap-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => cameraInputRef.current.click()}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all"
+                >
+                  📸 Camera
+                </button>
+                <button
+                  onClick={() => fileInputRef.current.click()}
+                  className="flex-1 py-3 rounded-xl text-sm font-semibold bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-all"
+                >
+                  🖼️ Gallery
+                </button>
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                disabled={!photoPreview || submitting}
+                className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${
+                  verifyStatus === 'fail'
+                    ? 'bg-red-500/20 border border-red-500/30 text-red-400'
+                    : verifyStatus === 'success'
+                    ? 'text-slate-900'
+                    : photoPreview && !submitting
+                    ? 'text-slate-900'
+                    : 'bg-white/5 text-slate-600 cursor-not-allowed'
+                }`}
+                style={
+                  verifyStatus === 'success' || (photoPreview && !submitting && verifyStatus !== 'fail')
+                    ? { background: 'linear-gradient(90deg, #4ade80, #22d3ee)' }
+                    : {}
+                }
+              >
+                {verifyStatus === 'verifying' && '🔍 Verifying with AI...'}
+                {verifyStatus === 'success' && '✅ Verified! Earning points...'}
+                {verifyStatus === 'fail' && "❌ Doesn't look right, try again!"}
+                {!verifyStatus && (submitting ? 'Submitting...' : `Submit & Earn +${selectedLandmark.points} pts`)}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
