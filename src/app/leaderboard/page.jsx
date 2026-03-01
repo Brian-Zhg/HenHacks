@@ -265,16 +265,18 @@ export default function LeaderboardPage() {
                   <span className="text-slate-400 text-[10px] shrink-0">{p.captured} pins</span>
                 </div>
               </div>
-              <div className={`text-right shrink-0 ${p.isMe ? "text-emerald-500" : "text-slate-500"}`}>
-                <p className="font-extrabold text-sm">{p.points}</p>
-                <p className="text-[10px] text-slate-400">pts</p>
-              </div>
-              {p.streak > 0 && (
-                <div className="shrink-0 text-center">
-                  <p className="text-xs">🔥</p>
-                  <p className="text-[10px] text-orange-400 font-bold">{p.streak}</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  {p.streak > 0 && (
+                    <div className="text-center">
+                      <p className="text-xs">🔥</p>
+                      <p className="text-[10px] text-orange-400 font-bold">{p.streak}</p>
+                    </div>
+                  )}
+                  <div className={`text-right ${p.isMe ? "text-emerald-500" : "text-slate-500"}`}>
+                    <p className="font-extrabold text-sm">{p.points}</p>
+                    <p className="text-[10px] text-slate-400">pts</p>
+                  </div>
                 </div>
-              )}
             </div>
           ))}
         </div>
@@ -291,9 +293,9 @@ export default function LeaderboardPage() {
           </a>
           <a href="/map" className="flex-1">
             <Button
-              className="w-full rounded-xl h-11 font-bold text-white"
+              className="w-full rounded-xl h-11 font-bold text-white hover:opacity-80 transition-opacity"
               style={{ background: "linear-gradient(135deg,#34d399,#22d3ee)" }}>
-              🗺️ View Map
+              🗺️ View Map            
             </Button>
           </a>
         </div>
