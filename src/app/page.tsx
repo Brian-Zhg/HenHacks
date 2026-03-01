@@ -17,7 +17,7 @@ export default function Home() {
 
         <h1 className="text-5xl font-extrabold tracking-tight leading-none mb-3 glow"
             style={{ fontFamily: "Syne, sans-serif", letterSpacing: "-0.03em" }}>
-          PinDrop<span className="text-emerald-500">.NYC</span>
+          PinDrop<span className="text-emerald-500">.Tech</span>
         </h1>
 
         <p className="text-slate-500 text-lg mt-2 mb-10 max-w-md leading-relaxed">
