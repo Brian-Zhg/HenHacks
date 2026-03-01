@@ -26,7 +26,11 @@ export default function HuntListPage({ onSelectLandmark }) {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [showCaptured, setShowCaptured] = useState(true);
-  const [capturedIds, setCapturedIds] = useState([]);
+  const [capturedIds, setCapturedIds] = useState(() => {
+  if (typeof window === 'undefined') return []
+  const saved = localStorage.getItem('capturedIds')
+  return saved ? JSON.parse(saved) : []
+  })
 
   const [selectedLandmark, setSelectedLandmark] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -83,7 +87,11 @@ export default function HuntListPage({ onSelectLandmark }) {
       if (verified) {
         setVerifyStatus('success');
         setTimeout(() => {
-          setCapturedIds(prev => [...prev, selectedLandmark.id]);
+          setCapturedIds(prev => {
+            const updated = [...prev, selectedLandmark.id]
+            localStorage.setItem('capturedIds', JSON.stringify(updated))
+            return updated
+          });
           setSelectedLandmark(null);
           setPhotoPreview(null);
           setVerifyStatus(null);
