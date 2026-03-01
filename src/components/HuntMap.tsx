@@ -28,28 +28,23 @@ export default function HuntMap({
   const markersRef = useRef<google.maps.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Load Google Maps script
   useEffect(() => {
     if (window.google?.maps) {
       setMapLoaded(true)
       return
     }
-
     if (document.querySelector('script[src*="maps.googleapis.com"]')) {
       window.initMap = () => setMapLoaded(true)
       return
     }
-
     const script = document.createElement("script")
     script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&callback=initMap`
     script.async = true
     script.defer = true
-
     window.initMap = () => setMapLoaded(true)
     document.head.appendChild(script)
   }, [])
 
-  // Initialize map
   useEffect(() => {
     if (!mapLoaded || !mapRef.current) return;
     if (!window.google?.maps) return;
@@ -85,15 +80,15 @@ export default function HuntMap({
 
       const infoWindow = new window.google.maps.InfoWindow({
         content: `
-          <div style="font-family: sans-serif; padding: 4px; max-width: 200px;">
-            <h3 style="margin: 0 0 4px; font-size: 14px; font-weight: bold;">${hunt.title}</h3>
-            <p style="margin: 0 0 4px; font-size: 12px; color: #666;">${hunt.borough}</p>
+          <div style="font-family: sans-serif; padding: 8px; min-width: 180px;">
+            <h3 style="margin: 0 0 6px; font-size: 15px; font-weight: bold; color: #111;">${hunt.title}</h3>
+            <p style="margin: 0 0 6px; font-size: 12px; color: #666;">${hunt.borough}</p>
             <span style="
               display: inline-block;
               background: ${isCompleted ? "#22c55e" : "#f97316"};
               color: white;
               font-size: 11px;
-              padding: 2px 8px;
+              padding: 3px 10px;
               border-radius: 999px;
             ">${isCompleted ? "✓ Completed" : `${hunt.points} pts`}</span>
           </div>
@@ -112,7 +107,6 @@ export default function HuntMap({
     });
   }, [mapLoaded, hunts, completedHuntIds]);
 
-  // Pan to selected hunt
   useEffect(() => {
     if (!mapInstanceRef.current || !selectedHunt) return;
     mapInstanceRef.current.panTo(selectedHunt.coordinates);
