@@ -43,7 +43,7 @@ export default function MapPage() {
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-xl font-extrabold text-emerald-500"
                 style={{ fontFamily: "Syne, sans-serif" }}>
-              PinDrop<span className="text-slate-700">.NYC</span>
+              PinDrop<span className="text-slate-700">.Tech</span>
             </h1>
             <a href="/hunts" className="text-xs text-slate-500 hover:text-slate-800 border border-black/10 bg-white px-3 py-1 rounded-lg transition-colors">
               ← Hunts
